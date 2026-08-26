@@ -16,5 +16,12 @@
         "artist": "Artist Three",
         "audio": "music/song3.mp3",
         "cover": "covers/song3.jpg"
+    },
+    {
+        "title": "Dancing On The Edge",
+        "artist": "Chris Grey & Allegra Jordyn",
+        "album": "Together, but Barely",
+        "audio": "website/playlist/music/Chris Grey & Allegra Jordyn - Dancing On The Edge.mp3",
+        "cover": "website/playlist/covers/Chris Grey & Allegra Jordyn - Dancing On The Edge.jpg"
     }
 ]
