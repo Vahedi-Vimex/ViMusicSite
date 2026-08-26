@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViMusic Character</title>
+
+    <link rel="stylesheet" href="character.css">
+</head>
+
+<body>
+
+<div class="container-ai-input">
+    <div class="area"></div>
+    <div class="area"></div>
+    <div class="area"></div>
+    <div class="area"></div>
+    <div class="area"></div>
+    <div class="area"></div>
+    <div class="area"></div>
+    <div class="area"></div>
+    <div class="area"></div>
+    <div class="area"></div>
+    <div class="area"></div>
+    <div class="area"></div>
+    <div class="area"></div>
+    <div class="area"></div>
+    <div class="area"></div>
+
+    <label class="container-wrap">
+
+        <div class="card">
+
+            <div class="background-blur-balls">
+                <div class="balls">
+                    <span class="ball rosa"></span>
+                    <span class="ball violet"></span>
+                    <span class="ball green"></span>
+                    <span class="ball cyan"></span>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="background-blur-card">
+
+                    <div class="eyes">
+                        <span class="eye"></span>
+                        <span class="eye"></span>
+                    </div>
+
+                    <div class="eyes happy">
+                        <svg fill="none" viewBox="0 0 24 24">
+                            <path
+                                fill="currentColor"
+                                d="M8.28386 16.2843C8.9917 15.7665 9.8765 14.731 12 14.731C14.1235 14.731 15.0083 15.7665 15.7161 16.2843C17.8397 17.8376 18.7542 16.4845 18.9014 15.7665C19.4323 13.1777 17.6627 11.1066 17.3088 10.5888C16.3844 9.23666 14.1235 8 12 8C9.87648 8 7.61556 9.23666 6.69122 10.5888C6.33728 11.1066 4.56771 13.1777 5.09858 15.7665C5.24582 16.4845 6.16034 17.8376 8.28386 16.2843Z">
+                            </path>
+                        </svg>
+
+                        <svg fill="none" viewBox="0 0 24 24">
+                            <path
+                                fill="currentColor"
+                                d="M8.28386 16.2843C8.9917 15.7665 9.8765 14.731 12 14.731C14.1235 14.731 15.0083 15.7665 15.7161 16.2843C17.8397 17.8376 18.7542 16.4845 18.9014 15.7665C19.4323 13.1777 17.6627 11.1066 17.3088 10.5888C16.3844 9.23666 14.1235 8 12 8C9.87648 8 7.61556 9.23666 6.69122 10.5888C6.33728 11.1066 4.56771 13.1777 5.09858 15.7665C5.24582 16.4845 6.16034 17.8376 8.28386 16.2843Z">
+                            </path>
+                        </svg>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </label>
+</div>
+
+<script>
+const areas = document.querySelectorAll(".area");
+
+window.addEventListener("message", (event) => {
+
+    if (event.data?.type === "mouse-position") {
+
+        const x = event.data.x;
+        const y = event.data.y;
+
+        const column = Math.min(4, Math.floor(x * 5));
+        const row = Math.min(2, Math.floor(y * 3));
+
+        const index = row * 5 + column;
+
+        areas.forEach((area, i) => {
+            area.classList.toggle("mouse-active", i === index);
+        });
+    }
+
+    if (event.data?.type === "mouse-leave") {
+
+        areas.forEach(area => {
+            area.classList.remove("mouse-active");
+        });
+    }
+});
+</script>
+
+</body>
+</html>
