@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ViMusic</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="background">
+        <div class="orb orb-green"></div>
+        <div class="orb orb-cyan"></div>
+        <div class="orb orb-red"></div>
+        <div class="orb orb-purple"></div>
+    </div>
+
+
+    <!-- Character -->
+    <iframe
+        src="character/character.html"
+        class="character-frame"
+        title="ViMusic Character">
+    </iframe>
+
+
+    <!-- Music Playlist Button -->
+    <a href="playlist.html" class="playlist-button">
+
+        <span class="playlist-icon">
+
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none">
+
+                <path
+                    d="M9 18V5L21 3V16"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"/>
+
+                <circle
+                    cx="6"
+                    cy="18"
+                    r="3"
+                    stroke="currentColor"
+                    stroke-width="2"/>
+
+                <circle
+                    cx="18"
+                    cy="16"
+                    r="3"
+                    stroke="currentColor"
+                    stroke-width="2"/>
+
+            </svg>
+
+        </span>
+
+        <span class="playlist-text">Music Playlist</span>
+
+    </a>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
