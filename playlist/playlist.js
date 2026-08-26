@@ -26,6 +26,45 @@ function formatTime(seconds) {
 
 
 /* =========================================================
+   RESOLVE MEDIA URL
+   ========================================================= */
+
+function resolveMediaUrl(path) {
+
+    if (!path) {
+        return "";
+    }
+
+    // Already an absolute URL
+    if (
+        path.startsWith("http://") ||
+        path.startsWith("https://") ||
+        path.startsWith("data:")
+    ) {
+        return path;
+    }
+
+    // Resolve relative paths from playlist directory
+    return new URL(path, window.location.href).href;
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+   ========================================================= */
+
+function escapeHTML(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+/* =========================================================
    CREATE SONG CARD
    ========================================================= */
 
@@ -35,23 +74,37 @@ function createSongCard(song) {
 
     card.className = "song-card";
 
+    const title =
+        escapeHTML(song.title || "Unknown Song");
+
+    const artist =
+        escapeHTML(song.artist || "Unknown Artist");
+
+    const cover =
+        resolveMediaUrl(song.cover);
+
+    const audio =
+        resolveMediaUrl(song.audio);
+
     card.innerHTML = `
 
         <img
             class="song-cover"
-            src="${song.cover}"
-            alt="${song.title}">
+            src="${cover}"
+            alt="${title}"
+            loading="lazy">
 
         <div class="song-info">
 
-            <h2>${song.title}</h2>
+            <h2>${title}</h2>
 
-            <p>${song.artist}</p>
+            <p>${artist}</p>
 
             <div class="player-row">
 
                 <button
                     class="play-button"
+                    type="button"
                     aria-label="Play">
 
                     <svg
@@ -65,7 +118,6 @@ function createSongCard(song) {
                             fill="currentColor"/>
 
                     </svg>
-
 
                     <svg
                         class="pause-icon"
@@ -102,7 +154,6 @@ function createSongCard(song) {
 
                     </div>
 
-
                     <div class="time">
 
                         <span class="current-time">
@@ -120,7 +171,7 @@ function createSongCard(song) {
 
                 <a
                     class="download-button"
-                    href="${song.audio}"
+                    href="${audio}"
                     download
                     aria-label="Download">
 
@@ -157,8 +208,7 @@ function createSongCard(song) {
         </div>
     `;
 
-
-    setupPlayer(card, song.audio);
+    setupPlayer(card, audio);
 
     return card;
 }
@@ -185,9 +235,27 @@ function setupPlayer(card, audioSource) {
     const duration =
         card.querySelector(".duration");
 
-
     const audio =
-        new Audio(audioSource);
+        new Audio();
+
+    audio.preload = "metadata";
+
+    audio.src = audioSource;
+
+
+    /* ---------------------------------------------------------
+       AUDIO ERROR
+       --------------------------------------------------------- */
+
+    audio.addEventListener("error", () => {
+
+        console.error(
+            "Audio could not be loaded:",
+            audioSource,
+            audio.error
+        );
+
+    });
 
 
     /* ---------------------------------------------------------
@@ -196,8 +264,12 @@ function setupPlayer(card, audioSource) {
 
     audio.addEventListener("loadedmetadata", () => {
 
-        duration.textContent =
-            formatTime(audio.duration);
+        if (Number.isFinite(audio.duration)) {
+
+            duration.textContent =
+                formatTime(audio.duration);
+
+        }
 
     });
 
@@ -209,8 +281,7 @@ function setupPlayer(card, audioSource) {
     playButton.addEventListener("click", async () => {
 
         /*
-         * If another song is playing,
-         * stop it first.
+         * Stop another song first.
          */
 
         if (
@@ -224,7 +295,7 @@ function setupPlayer(card, audioSource) {
 
 
         /*
-         * Pause
+         * Pause current song.
          */
 
         if (!audio.paused) {
@@ -234,11 +305,12 @@ function setupPlayer(card, audioSource) {
             card.classList.remove("playing");
 
             return;
+
         }
 
 
         /*
-         * Play
+         * Play song.
          */
 
         try {
@@ -268,18 +340,18 @@ function setupPlayer(card, audioSource) {
 
     audio.addEventListener("timeupdate", () => {
 
-        if (!audio.duration) {
+        if (
+            !Number.isFinite(audio.duration) ||
+            audio.duration <= 0
+        ) {
             return;
         }
-
 
         const percentage =
             (audio.currentTime / audio.duration) * 100;
 
-
         progressFill.style.width =
             `${percentage}%`;
-
 
         currentTime.textContent =
             formatTime(audio.currentTime);
@@ -293,18 +365,18 @@ function setupPlayer(card, audioSource) {
 
     progressBar.addEventListener("click", (event) => {
 
-        if (!audio.duration) {
+        if (
+            !Number.isFinite(audio.duration) ||
+            audio.duration <= 0
+        ) {
             return;
         }
-
 
         const rect =
             progressBar.getBoundingClientRect();
 
-
         const clickPosition =
             event.clientX - rect.left;
-
 
         const percentage =
             Math.max(
@@ -314,7 +386,6 @@ function setupPlayer(card, audioSource) {
                     clickPosition / rect.width
                 )
             );
-
 
         audio.currentTime =
             percentage * audio.duration;
@@ -330,8 +401,10 @@ function setupPlayer(card, audioSource) {
 
         resetSong(card);
 
-        currentAudio = null;
-        currentCard = null;
+        if (currentAudio === audio) {
+            currentAudio = null;
+            currentCard = null;
+        }
 
     });
 
@@ -348,9 +421,7 @@ function resetSong(card) {
         return;
     }
 
-
     card.classList.remove("playing");
-
 
     const progressFill =
         card.querySelector(".progress-fill");
@@ -358,11 +429,9 @@ function resetSong(card) {
     const currentTime =
         card.querySelector(".current-time");
 
-
     if (progressFill) {
         progressFill.style.width = "0%";
     }
-
 
     if (currentTime) {
         currentTime.textContent = "0:00";
@@ -377,24 +446,30 @@ function resetSong(card) {
 
 function stopCurrentSong() {
 
-    if (
-        !currentAudio ||
-        !currentCard
-    ) {
+    if (!currentAudio) {
         return;
     }
 
+    const audioToStop =
+        currentAudio;
 
-    currentAudio.pause();
+    const cardToReset =
+        currentCard;
 
-    currentAudio.currentTime = 0;
+    audioToStop.pause();
 
+    try {
+        audioToStop.currentTime = 0;
+    } catch (error) {
+        console.warn(
+            "Could not reset audio:",
+            error
+        );
+    }
 
-    resetSong(currentCard);
-
+    resetSong(cardToReset);
 
     currentAudio = null;
-
     currentCard = null;
 
 }
@@ -408,9 +483,21 @@ async function loadPlaylist() {
 
     try {
 
-        const response =
-            await fetch("songs.json");
+        /*
+         * Cache busting prevents GitHub Pages
+         * from showing an old songs.json.
+         */
 
+        const songsURL =
+            `songs.json?v=${Date.now()}`;
+
+        const response =
+            await fetch(
+                songsURL,
+                {
+                    cache: "no-store"
+                }
+            );
 
         if (!response.ok) {
 
@@ -420,10 +507,8 @@ async function loadPlaylist() {
 
         }
 
-
         const songs =
             await response.json();
-
 
         if (!Array.isArray(songs)) {
 
@@ -433,9 +518,7 @@ async function loadPlaylist() {
 
         }
 
-
         playlist.innerHTML = "";
-
 
         if (songs.length === 0) {
 
@@ -454,11 +537,21 @@ async function loadPlaylist() {
             `;
 
             return;
-
         }
 
 
+        /*
+         * Create all songs.
+         */
+
         songs.forEach((song) => {
+
+            if (
+                !song ||
+                typeof song !== "object"
+            ) {
+                return;
+            }
 
             const card =
                 createSongCard(song);
@@ -473,7 +566,6 @@ async function loadPlaylist() {
             "Failed to load playlist:",
             error
         );
-
 
         playlist.innerHTML = `
 
